@@ -15,18 +15,14 @@ import {
 } from "@/components/ui/dialog";
 import { EntryMarkdown } from "@/components/EntryMarkdown";
 import { Trash2 } from "lucide-react";
+import {
+  getEntries,
+  createEntry,
+  deleteEntry,
+  type JournalEntryForUI,
+} from "@/app/actions/journal";
 
-const STORAGE_KEY = "work-journal-entries";
-
-export type JournalEntry = {
-  id: string;
-  date: string; // YYYY-MM-DD
-  heading?: string;
-  content: string;
-  imageDataUrl?: string;
-  diagramDataUrl?: string;
-  createdAt: number;
-};
+export type JournalEntry = JournalEntryForUI;
 
 function formatEntryDate(dateStr: string): string {
   return new Date(dateStr + "T12:00:00").toLocaleDateString("en-GB", {
@@ -37,27 +33,13 @@ function formatEntryDate(dateStr: string): string {
   });
 }
 
-function loadEntries(): JournalEntry[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as JournalEntry[];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveEntries(entries: JournalEntry[]) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-}
-
 export function JournalClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const [entriesLoading, setEntriesLoading] = useState(true);
+  const [entriesError, setEntriesError] = useState<string | null>(null);
+  const [postError, setPostError] = useState<string | null>(null);
   const [heading, setHeading] = useState("");
   const [content, setContent] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -80,12 +62,26 @@ export function JournalClient() {
   const historicalModalOpen = searchParams.get("historical") === "1";
   const deleteModalOpen = deleteEntryId !== null;
 
-  useEffect(() => {
-    setEntries(loadEntries());
+  const refreshEntries = useCallback(async () => {
+    setEntriesLoading(true);
+    setEntriesError(null);
+    try {
+      const list = await getEntries();
+      setEntries(list);
+    } catch (err) {
+      setEntriesError(err instanceof Error ? err.message : "Failed to load entries");
+    } finally {
+      setEntriesLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    refreshEntries();
+  }, [refreshEntries]);
 
   const closeModal = useCallback(() => {
     router.replace("/", { scroll: false });
+    setPostError(null);
     setHeading("");
     setContent("");
     setImageFile(null);
@@ -96,6 +92,7 @@ export function JournalClient() {
 
   const closeHistoricalModal = useCallback(() => {
     router.replace("/", { scroll: false });
+    setPostError(null);
     setHistDate(new Date().toISOString().slice(0, 10));
     setHistHeading("");
     setHistContent("");
@@ -168,6 +165,7 @@ export function JournalClient() {
   const handlePost = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
+      setPostError(null);
       const headingTrimmed = heading.trim();
       const text = content.trim();
       if (!headingTrimmed && !text && !imageFile && !diagramFile) return;
@@ -178,27 +176,27 @@ export function JournalClient() {
       if (imageFile) imageDataUrl = await readFileAsDataUrl(imageFile);
       if (diagramFile) diagramDataUrl = await readFileAsDataUrl(diagramFile);
 
-      const newEntry: JournalEntry = {
-        id: crypto.randomUUID(),
+      const result = await createEntry({
         date: today,
         heading: headingTrimmed || undefined,
         content: text || "(No text)",
         imageDataUrl,
         diagramDataUrl,
-        createdAt: Date.now(),
-      };
-
-      const next = [newEntry, ...entries];
-      setEntries(next);
-      saveEntries(next);
+      });
+      if (!result.success) {
+        setPostError(result.error);
+        return;
+      }
+      await refreshEntries();
       closeModal();
     },
-    [heading, content, entries, imageFile, diagramFile, closeModal]
+    [heading, content, imageFile, diagramFile, closeModal, refreshEntries]
   );
 
   const handleHistoricalPost = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
+      setPostError(null);
       const headingTrimmed = histHeading.trim();
       const text = histContent.trim();
       if (!headingTrimmed && !text && !histImageFile && !histDiagramFile) return;
@@ -209,19 +207,18 @@ export function JournalClient() {
       if (histDiagramFile)
         diagramDataUrl = await readFileAsDataUrl(histDiagramFile);
 
-      const newEntry: JournalEntry = {
-        id: crypto.randomUUID(),
+      const result = await createEntry({
         date: histDate,
         heading: headingTrimmed || undefined,
         content: text || "(No text)",
         imageDataUrl,
         diagramDataUrl,
-        createdAt: new Date(histDate + "T12:00:00").getTime(),
-      };
-
-      const next = [newEntry, ...entries];
-      setEntries(next);
-      saveEntries(next);
+      });
+      if (!result.success) {
+        setPostError(result.error);
+        return;
+      }
+      await refreshEntries();
       closeHistoricalModal();
     },
     [
@@ -230,29 +227,29 @@ export function JournalClient() {
       histContent,
       histImageFile,
       histDiagramFile,
-      entries,
       closeHistoricalModal,
+      refreshEntries,
     ]
   );
 
-  const removeEntry = useCallback((id: string) => {
-    setEntries((prev) => {
-      const next = prev.filter((e) => e.id !== id);
-      saveEntries(next);
-      return next;
-    });
-  }, []);
+  const removeEntry = useCallback(
+    async (id: string) => {
+      const result = await deleteEntry(id);
+      if (!result.success) return;
+      await refreshEntries();
+    },
+    [refreshEntries]
+  );
 
   const closeDeleteModal = useCallback(() => {
     setDeleteEntryId(null);
     setDeleteConfirmText("");
   }, []);
 
-  const confirmDelete = useCallback(() => {
-    if (deleteEntryId && deleteConfirmText.trim() === "Delete me") {
-      removeEntry(deleteEntryId);
-      closeDeleteModal();
-    }
+  const confirmDelete = useCallback(async () => {
+    if (!deleteEntryId || deleteConfirmText.trim() !== "Delete me") return;
+    await removeEntry(deleteEntryId);
+    closeDeleteModal();
   }, [deleteEntryId, deleteConfirmText, removeEntry, closeDeleteModal]);
 
   const sortedEntries = [...entries].sort((a, b) => {
@@ -264,7 +261,11 @@ export function JournalClient() {
     <>
       <div className="min-h-[calc(100vh-3.5rem)] w-full bg-background">
         <div className="mx-auto w-full max-w-4xl px-6 py-8">
-          {sortedEntries.length > 0 ? (
+          {entriesLoading ? (
+            <p className="text-muted-foreground">Loading entries…</p>
+          ) : entriesError ? (
+            <p className="text-destructive">{entriesError}</p>
+          ) : sortedEntries.length > 0 ? (
             <ul className="space-y-6" aria-label="Journal entries">
               {sortedEntries.map((entry) => (
                 <li key={entry.id}>
@@ -332,6 +333,9 @@ export function JournalClient() {
           <DialogHeader>
             <DialogTitle>New Entry</DialogTitle>
           </DialogHeader>
+          {postError && (
+            <p className="text-sm text-destructive">{postError}</p>
+          )}
           <form onSubmit={handlePost} id="new-entry-form">
             <div className="space-y-4 py-2">
               <div className="space-y-2">
@@ -441,6 +445,9 @@ export function JournalClient() {
           <DialogHeader>
             <DialogTitle>Historical Entry</DialogTitle>
           </DialogHeader>
+          {postError && (
+            <p className="text-sm text-destructive">{postError}</p>
+          )}
           <form onSubmit={handleHistoricalPost} id="historical-entry-form">
             <div className="space-y-4 py-2">
               <div className="space-y-2">

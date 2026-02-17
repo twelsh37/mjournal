@@ -71,7 +71,7 @@ export function Navbar() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-muted-foreground hover:text-foreground data-[state=open]:text-foreground"
+                  className="text-muted-foreground transition-colors hover:bg-brand/15 hover:text-brand data-[state=open]:bg-brand/15 data-[state=open]:text-brand"
                   aria-haspopup="menu"
                   aria-label="Theme"
                   onMouseEnter={handleThemeTriggerEnter}
@@ -87,15 +87,24 @@ export function Navbar() {
                 onMouseEnter={clearThemeCloseTimeout}
                 onMouseLeave={scheduleThemeClose}
               >
-                <DropdownMenuItem onClick={() => setTheme("light")}>
+                <DropdownMenuItem
+                  onClick={() => setTheme("light")}
+                  className="hover:bg-brand/15 hover:text-brand focus:bg-brand/15 focus:text-brand"
+                >
                   <Sun className="mr-2 size-4" />
                   Light
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme("dark")}>
+                <DropdownMenuItem
+                  onClick={() => setTheme("dark")}
+                  className="hover:bg-brand/15 hover:text-brand focus:bg-brand/15 focus:text-brand"
+                >
                   <Moon className="mr-2 size-4" />
                   Dark
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme("system")}>
+                <DropdownMenuItem
+                  onClick={() => setTheme("system")}
+                  className="hover:bg-brand/15 hover:text-brand focus:bg-brand/15 focus:text-brand"
+                >
                   <Monitor className="mr-2 size-4" />
                   System
                 </DropdownMenuItem>
@@ -105,12 +114,12 @@ export function Navbar() {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground data-[state=open]:text-foreground"
+                  className="text-sm font-medium text-muted-foreground transition-colors hover:bg-brand/15 hover:text-brand data-[state=open]:bg-brand/15 data-[state=open]:text-brand"
                   aria-haspopup="menu"
                   onMouseEnter={handleTriggerEnter}
                   onMouseLeave={scheduleClose}
                 >
-                  File
+                  Entries
                   <ChevronDown className="ml-1 size-4 opacity-70" />
                 </Button>
               </DropdownMenuTrigger>
@@ -120,10 +129,10 @@ export function Navbar() {
                 onMouseEnter={clearCloseTimeout}
                 onMouseLeave={scheduleClose}
               >
-                <DropdownMenuItem asChild>
+                <DropdownMenuItem asChild className="hover:bg-brand/15 hover:text-brand focus:bg-brand/15 focus:text-brand">
                   <Link href="/?new=1">Add Entry</Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
+                <DropdownMenuItem asChild className="hover:bg-brand/15 hover:text-brand focus:bg-brand/15 focus:text-brand">
                   <Link href="/?historical=1">Historical Entry</Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>

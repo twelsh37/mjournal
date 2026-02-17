@@ -24,6 +24,9 @@ const roboto = Roboto({
 export const metadata: Metadata = {
   title: "Work Journal",
   description: "A simple daily work journal with notes, images, and diagrams.",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
