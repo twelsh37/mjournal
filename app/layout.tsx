@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Roboto } from "next/font/google";
 import { Navbar } from "@/components/Navbar";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -31,14 +32,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${roboto.variable} min-h-screen antialiased`}
       >
-        <div className="flex min-h-screen w-full flex-col">
-          <Navbar />
-          <main className="w-full flex-1">{children}</main>
-        </div>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <div className="flex min-h-screen w-full flex-col">
+            <Navbar />
+            <main className="w-full flex-1">{children}</main>
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   );
