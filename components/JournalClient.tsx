@@ -21,6 +21,7 @@ import {
   deleteEntry,
   type JournalEntryForUI,
 } from "@/app/actions/journal";
+import { useAuth } from "@/components/AuthProvider";
 
 export type JournalEntry = JournalEntryForUI;
 
@@ -36,6 +37,7 @@ function formatEntryDate(dateStr: string): string {
 export function JournalClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isAdmin } = useAuth();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [entriesLoading, setEntriesLoading] = useState(true);
   const [entriesError, setEntriesError] = useState<string | null>(null);
@@ -61,6 +63,14 @@ export function JournalClient() {
   const modalOpen = searchParams.get("new") === "1";
   const historicalModalOpen = searchParams.get("historical") === "1";
   const deleteModalOpen = deleteEntryId !== null;
+
+  // Non-admin: don't show add-entry modals (clear URL if they opened via direct link)
+  useEffect(() => {
+    if (isAdmin) return;
+    if (modalOpen || historicalModalOpen) {
+      router.replace("/", { scroll: false });
+    }
+  }, [isAdmin, modalOpen, historicalModalOpen, router]);
 
   const refreshEntries = useCallback(async () => {
     setEntriesLoading(true);
@@ -302,19 +312,21 @@ export function JournalClient() {
                           </div>
                         )}
                       </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        className="shrink-0 text-muted-foreground hover:text-destructive"
-                        onClick={() => {
-                          setDeleteEntryId(entry.id);
-                          setDeleteConfirmText("");
-                        }}
-                        aria-label="Delete entry"
-                      >
-                        <Trash2 className="size-4" />
-                      </Button>
+                      {isAdmin && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          className="shrink-0 text-muted-foreground hover:text-destructive"
+                          onClick={() => {
+                            setDeleteEntryId(entry.id);
+                            setDeleteConfirmText("");
+                          }}
+                          aria-label="Delete entry"
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      )}
                     </div>
                   </Card>
                 </li>
@@ -328,6 +340,7 @@ export function JournalClient() {
         </div>
       </div>
 
+      {isAdmin && (
       <Dialog open={modalOpen} onOpenChange={(open) => !open && closeModal()}>
         <DialogContent className="sm:max-w-[32rem]" showCloseButton={true}>
           <DialogHeader>
@@ -436,7 +449,9 @@ export function JournalClient() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      )}
 
+      {isAdmin && (
       <Dialog
         open={historicalModalOpen}
         onOpenChange={(open) => !open && closeHistoricalModal()}
@@ -570,6 +585,7 @@ export function JournalClient() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      )}
 
       <Dialog open={deleteModalOpen} onOpenChange={(open) => !open && closeDeleteModal()}>
         <DialogContent className="sm:max-w-md" showCloseButton={true}>

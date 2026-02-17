@@ -10,13 +10,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, Sun, Moon, Monitor } from "lucide-react";
+import { ChevronDown, Sun, Moon, Monitor, LogIn, LogOut } from "lucide-react";
+import { useAuth } from "@/components/AuthProvider";
+import { LoginModal } from "@/components/LoginModal";
 
 const HOVER_CLOSE_DELAY_MS = 200;
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const { user, isAdmin, isLoading, signOut } = useAuth();
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const themeCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { theme, setTheme } = useTheme();
@@ -66,6 +70,34 @@ export function Navbar() {
             m&apos;Journal
           </Link>
           <div className="flex items-center gap-3">
+            {!isLoading && (
+              <>
+                {user ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground transition-colors hover:bg-brand/15 hover:text-brand"
+                    onClick={() => signOut()}
+                    aria-label="Sign out"
+                  >
+                    <LogOut className="mr-1.5 size-4" />
+                    Log out
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground transition-colors hover:bg-brand/15 hover:text-brand"
+                    onClick={() => setLoginOpen(true)}
+                    aria-label="Sign in"
+                  >
+                    <LogIn className="mr-1.5 size-4" />
+                    Log in
+                  </Button>
+                )}
+              </>
+            )}
+            <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />
             <DropdownMenu open={themeOpen} onOpenChange={setThemeOpen}>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -129,12 +161,23 @@ export function Navbar() {
                 onMouseEnter={clearCloseTimeout}
                 onMouseLeave={scheduleClose}
               >
-                <DropdownMenuItem asChild className="hover:bg-brand/15 hover:text-brand focus:bg-brand/15 focus:text-brand">
-                  <Link href="/?new=1">Add Entry</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="hover:bg-brand/15 hover:text-brand focus:bg-brand/15 focus:text-brand">
-                  <Link href="/?historical=1">Historical Entry</Link>
-                </DropdownMenuItem>
+                {isAdmin ? (
+                  <>
+                    <DropdownMenuItem asChild className="hover:bg-brand/15 hover:text-brand focus:bg-brand/15 focus:text-brand">
+                      <Link href="/?new=1">Add Entry</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="hover:bg-brand/15 hover:text-brand focus:bg-brand/15 focus:text-brand">
+                      <Link href="/?historical=1">Historical Entry</Link>
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <DropdownMenuItem
+                    className="hover:bg-brand/15 hover:text-brand focus:bg-brand/15 focus:text-brand"
+                    onSelect={() => setLoginOpen(true)}
+                  >
+                    Sign in to add entries
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

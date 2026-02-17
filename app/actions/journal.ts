@@ -3,6 +3,8 @@
 import { db } from "@/db";
 import { journalEntries } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
+import { createClient } from "@/lib/supabase/server";
+import { isAdminEmail } from "@/lib/auth";
 
 export type JournalEntryForUI = {
   id: string;
@@ -50,6 +52,11 @@ export async function createEntry(params: {
   diagramDataUrl?: string;
 }): Promise<{ success: true; id: string } | { success: false; error: string }> {
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user || !isAdminEmail(user.email)) {
+      return { success: false, error: "Only the admin can add entries. Please sign in." };
+    }
     const [row] = await db
       .insert(journalEntries)
       .values({
@@ -72,6 +79,11 @@ export async function deleteEntry(
   id: string
 ): Promise<{ success: true } | { success: false; error: string }> {
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user || !isAdminEmail(user.email)) {
+      return { success: false, error: "Only the admin can delete entries. Please sign in." };
+    }
     const numId = parseInt(id, 10);
     if (Number.isNaN(numId)) return { success: false, error: "Invalid id" };
     await db.delete(journalEntries).where(eq(journalEntries.id, numId));
