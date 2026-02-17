@@ -70,34 +70,35 @@ export function Navbar() {
             m&apos;Journal
           </Link>
           <div className="flex items-center gap-3">
-            {!isLoading && (
-              <>
-                {user ? (
+            {isAdmin && (
+              <DropdownMenu open={open} onOpenChange={setOpen}>
+                <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    size="sm"
-                    className="text-muted-foreground transition-colors hover:bg-brand/15 hover:text-brand"
-                    onClick={() => signOut()}
-                    aria-label="Sign out"
+                    className="text-sm font-medium text-muted-foreground transition-colors hover:bg-brand/15 hover:text-brand data-[state=open]:bg-brand/15 data-[state=open]:text-brand"
+                    aria-haspopup="menu"
+                    onMouseEnter={handleTriggerEnter}
+                    onMouseLeave={scheduleClose}
                   >
-                    <LogOut className="mr-1.5 size-4" />
-                    Log out
+                    Entries
+                    <ChevronDown className="ml-1 size-4 opacity-70" />
                   </Button>
-                ) : (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-muted-foreground transition-colors hover:bg-brand/15 hover:text-brand"
-                    onClick={() => setLoginOpen(true)}
-                    aria-label="Sign in"
-                  >
-                    <LogIn className="mr-1.5 size-4" />
-                    Log in
-                  </Button>
-                )}
-              </>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="min-w-[11rem]"
+                  onMouseEnter={clearCloseTimeout}
+                  onMouseLeave={scheduleClose}
+                >
+                  <DropdownMenuItem asChild className="hover:bg-brand/15 hover:text-brand focus:bg-brand/15 focus:text-brand">
+                    <Link href="/?new=1">Add Entry</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="hover:bg-brand/15 hover:text-brand focus:bg-brand/15 focus:text-brand">
+                    <Link href="/?historical=1">Historical Entry</Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
-            <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />
             <DropdownMenu open={themeOpen} onOpenChange={setThemeOpen}>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -142,44 +143,34 @@ export function Navbar() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <DropdownMenu open={open} onOpenChange={setOpen}>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="text-sm font-medium text-muted-foreground transition-colors hover:bg-brand/15 hover:text-brand data-[state=open]:bg-brand/15 data-[state=open]:text-brand"
-                  aria-haspopup="menu"
-                  onMouseEnter={handleTriggerEnter}
-                  onMouseLeave={scheduleClose}
-                >
-                  Entries
-                  <ChevronDown className="ml-1 size-4 opacity-70" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                className="min-w-[11rem]"
-                onMouseEnter={clearCloseTimeout}
-                onMouseLeave={scheduleClose}
-              >
-                {isAdmin ? (
-                  <>
-                    <DropdownMenuItem asChild className="hover:bg-brand/15 hover:text-brand focus:bg-brand/15 focus:text-brand">
-                      <Link href="/?new=1">Add Entry</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="hover:bg-brand/15 hover:text-brand focus:bg-brand/15 focus:text-brand">
-                      <Link href="/?historical=1">Historical Entry</Link>
-                    </DropdownMenuItem>
-                  </>
-                ) : (
-                  <DropdownMenuItem
-                    className="hover:bg-brand/15 hover:text-brand focus:bg-brand/15 focus:text-brand"
-                    onSelect={() => setLoginOpen(true)}
+            {!isLoading && (
+              <>
+                {user ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground transition-colors hover:bg-brand/15 hover:text-brand"
+                    onClick={() => signOut()}
+                    aria-label="Sign out"
                   >
-                    Sign in to add entries
-                  </DropdownMenuItem>
+                    <LogOut className="mr-1.5 size-4" />
+                    Log out
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground transition-colors hover:bg-brand/15 hover:text-brand"
+                    onClick={() => setLoginOpen(true)}
+                    aria-label="Sign in"
+                  >
+                    <LogIn className="mr-1.5 size-4" />
+                    Log in
+                  </Button>
                 )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </>
+            )}
+            <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />
           </div>
         </div>
       </nav>
