@@ -271,6 +271,11 @@ export function JournalClient() {
     <>
       <div className="min-h-[calc(100vh-3.5rem)] w-full bg-background">
         <div className="mx-auto w-full max-w-4xl px-6 py-8">
+          <p className="font-sans text-[14pt] leading-relaxed text-foreground/90 max-w-2xl">
+            Welcome to my online journal—a place where I capture my day-to-day of life in tech. The highs, the lows, the breakthroughs, the dead ends, and everything in between. No polish, just notes and reflections as I remember them.
+            <span className="block mt-3">You never know I might actually update this.</span>
+          </p>
+          <hr className="my-8 border-border" aria-hidden="true" />
           {entriesLoading ? (
             <p className="text-muted-foreground">Loading entries…</p>
           ) : entriesError ? (
