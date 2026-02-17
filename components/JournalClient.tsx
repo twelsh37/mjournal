@@ -14,10 +14,11 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { EntryMarkdown } from "@/components/EntryMarkdown";
-import { Trash2 } from "lucide-react";
+import { Trash2, Pencil } from "lucide-react";
 import {
   getEntries,
   createEntry,
+  updateEntry,
   deleteEntry,
   type JournalEntryForUI,
 } from "@/app/actions/journal";
@@ -59,6 +60,15 @@ export function JournalClient() {
   const [histDiagramFile, setHistDiagramFile] = useState<File | null>(null);
   const [histImagePreview, setHistImagePreview] = useState<string | null>(null);
   const [histDiagramPreview, setHistDiagramPreview] = useState<string | null>(null);
+  const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
+  const [editDate, setEditDate] = useState("");
+  const [editHeading, setEditHeading] = useState("");
+  const [editContent, setEditContent] = useState("");
+  const [editImageFile, setEditImageFile] = useState<File | null>(null);
+  const [editDiagramFile, setEditDiagramFile] = useState<File | null>(null);
+  const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
+  const [editDiagramPreview, setEditDiagramPreview] = useState<string | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
 
   const modalOpen = searchParams.get("new") === "1";
   const historicalModalOpen = searchParams.get("historical") === "1";
@@ -262,6 +272,100 @@ export function JournalClient() {
     closeDeleteModal();
   }, [deleteEntryId, deleteConfirmText, removeEntry, closeDeleteModal]);
 
+  const openEditModal = useCallback((entry: JournalEntry) => {
+    setEditingEntry(entry);
+    setEditDate(entry.date);
+    setEditHeading(entry.heading ?? "");
+    setEditContent(entry.content);
+    setEditImageFile(null);
+    setEditDiagramFile(null);
+    setEditImagePreview(entry.imageDataUrl ?? null);
+    setEditDiagramPreview(entry.diagramDataUrl ?? null);
+    setEditError(null);
+  }, []);
+
+  const closeEditModal = useCallback(() => {
+    setEditingEntry(null);
+    setEditDate("");
+    setEditHeading("");
+    setEditContent("");
+    setEditImageFile(null);
+    setEditDiagramFile(null);
+    setEditImagePreview(null);
+    setEditDiagramPreview(null);
+    setEditError(null);
+  }, []);
+
+  const handleEditImageChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      setEditImageFile(file ?? null);
+      if (file) {
+        readFileAsDataUrl(file).then(setEditImagePreview);
+      } else {
+        setEditImagePreview(editingEntry?.imageDataUrl ?? null);
+      }
+    },
+    [editingEntry?.imageDataUrl]
+  );
+
+  const handleEditDiagramChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      setEditDiagramFile(file ?? null);
+      if (file) {
+        readFileAsDataUrl(file).then(setEditDiagramPreview);
+      } else {
+        setEditDiagramPreview(editingEntry?.diagramDataUrl ?? null);
+      }
+    },
+    [editingEntry?.diagramDataUrl]
+  );
+
+  const handleEditSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!editingEntry) return;
+      setEditError(null);
+      const headingTrimmed = editHeading.trim();
+      const text = editContent.trim();
+      if (!headingTrimmed && !text && !editImageFile && !editDiagramFile && !editingEntry.imageDataUrl && !editingEntry.diagramDataUrl) return;
+
+      let imageDataUrl: string | null | undefined = editingEntry.imageDataUrl ?? null;
+      let diagramDataUrl: string | null | undefined = editingEntry.diagramDataUrl ?? null;
+      if (editImageFile) imageDataUrl = await readFileAsDataUrl(editImageFile);
+      else imageDataUrl = editImagePreview ?? null;
+      if (editDiagramFile) diagramDataUrl = await readFileAsDataUrl(editDiagramFile);
+      else diagramDataUrl = editDiagramPreview ?? null;
+
+      const result = await updateEntry(editingEntry.id, {
+        date: editDate,
+        heading: headingTrimmed || undefined,
+        content: text || "(No text)",
+        imageDataUrl,
+        diagramDataUrl,
+      });
+      if (!result.success) {
+        setEditError(result.error);
+        return;
+      }
+      await refreshEntries();
+      closeEditModal();
+    },
+    [
+      editingEntry,
+      editDate,
+      editHeading,
+      editContent,
+      editImageFile,
+      editDiagramFile,
+      editImagePreview,
+      editDiagramPreview,
+      closeEditModal,
+      refreshEntries,
+    ]
+  );
+
   const sortedEntries = [...entries].sort((a, b) => {
     if (a.date !== b.date) return b.date.localeCompare(a.date);
     return b.createdAt - a.createdAt;
@@ -318,19 +422,31 @@ export function JournalClient() {
                         )}
                       </div>
                       {isAdmin && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon-sm"
-                          className="shrink-0 text-muted-foreground hover:text-destructive"
-                          onClick={() => {
-                            setDeleteEntryId(entry.id);
-                            setDeleteConfirmText("");
-                          }}
-                          aria-label="Delete entry"
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
+                        <div className="flex shrink-0 items-center gap-0.5">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            className="text-muted-foreground hover:bg-brand/15 hover:text-brand"
+                            onClick={() => openEditModal(entry)}
+                            aria-label="Edit entry"
+                          >
+                            <Pencil className="size-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            className="text-muted-foreground hover:text-destructive"
+                            onClick={() => {
+                              setDeleteEntryId(entry.id);
+                              setDeleteConfirmText("");
+                            }}
+                            aria-label="Delete entry"
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </div>
                       )}
                     </div>
                   </Card>
@@ -588,6 +704,130 @@ export function JournalClient() {
               Post
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      )}
+
+      {isAdmin && editingEntry && (
+      <Dialog open={true} onOpenChange={(open) => !open && closeEditModal()}>
+        <DialogContent className="max-h-[75vh] max-w-[min(32rem,75vw)] overflow-hidden" style={{ display: "flex", flexDirection: "column" }} showCloseButton={true}>
+          <div className="flex min-h-0 flex-1 flex-col">
+          <DialogHeader className="shrink-0">
+            <DialogTitle>Edit entry</DialogTitle>
+          </DialogHeader>
+          {editError && (
+            <p className="shrink-0 text-sm text-destructive">{editError}</p>
+          )}
+          <div className="min-h-0 flex-1 overflow-y-auto">
+          <form onSubmit={handleEditSubmit} id="edit-entry-form">
+            <div className="space-y-4 py-2">
+              <div className="space-y-2">
+                <label htmlFor="edit-date" className="text-sm font-medium text-foreground">
+                  Date
+                </label>
+                <input
+                  id="edit-date"
+                  type="date"
+                  value={editDate}
+                  onChange={(e) => setEditDate(e.target.value)}
+                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  aria-label="Entry date"
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="edit-heading" className="text-sm font-medium text-foreground">
+                  Heading
+                </label>
+                <input
+                  id="edit-heading"
+                  type="text"
+                  placeholder="Entry title"
+                  value={editHeading}
+                  onChange={(e) => setEditHeading(e.target.value)}
+                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="edit-body" className="text-sm font-medium text-foreground">
+                  Body
+                </label>
+                <Textarea
+                  id="edit-body"
+                  placeholder="Write in **markdown**… headings, lists, code, links."
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                  className="min-h-[160px] resize-y font-mono text-sm"
+                  rows={6}
+                />
+              </div>
+              <div className="flex flex-wrap gap-4">
+                <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleEditImageChange}
+                    className="sr-only"
+                  />
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    className="inline-flex h-8 cursor-pointer items-center justify-center rounded-md border border-input bg-background px-3 text-sm font-medium shadow-xs hover:bg-accent hover:text-accent-foreground"
+                  >
+                    Add image
+                  </span>
+                  {(editImagePreview || editImageFile) && (
+                    <span className="text-xs">1 image selected</span>
+                  )}
+                </label>
+                <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleEditDiagramChange}
+                    className="sr-only"
+                  />
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    className="inline-flex h-8 cursor-pointer items-center justify-center rounded-md border border-input bg-background px-3 text-sm font-medium shadow-xs hover:bg-accent hover:text-accent-foreground"
+                  >
+                    Add diagram
+                  </span>
+                  {(editDiagramPreview || editDiagramFile) && (
+                    <span className="text-xs">1 diagram selected</span>
+                  )}
+                </label>
+              </div>
+              {(editImagePreview || editDiagramPreview) && (
+                <div className="flex flex-wrap gap-4">
+                  {editImagePreview && (
+                    <img
+                      src={editImagePreview}
+                      alt="Preview"
+                      className="h-24 w-auto rounded border border-border object-contain"
+                    />
+                  )}
+                  {editDiagramPreview && (
+                    <img
+                      src={editDiagramPreview}
+                      alt="Diagram preview"
+                      className="h-24 w-auto rounded border border-border object-contain"
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+          </form>
+          </div>
+          <DialogFooter className="shrink-0" showCloseButton={false}>
+            <Button type="button" variant="outline" onClick={closeEditModal}>
+              Cancel
+            </Button>
+            <Button type="submit" form="edit-entry-form">
+              Save changes
+            </Button>
+          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
       )}

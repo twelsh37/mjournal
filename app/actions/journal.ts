@@ -75,6 +75,41 @@ export async function createEntry(params: {
   }
 }
 
+export async function updateEntry(
+  id: string,
+  params: {
+    date: string;
+    heading?: string;
+    content: string;
+    imageDataUrl?: string | null;
+    diagramDataUrl?: string | null;
+  }
+): Promise<{ success: true } | { success: false; error: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user || !isAdminEmail(user.email)) {
+      return { success: false, error: "Only the admin can edit entries. Please sign in." };
+    }
+    const numId = parseInt(id, 10);
+    if (Number.isNaN(numId)) return { success: false, error: "Invalid id" };
+    await db
+      .update(journalEntries)
+      .set({
+        date: params.date,
+        heading: params.heading ?? null,
+        content: params.content || "(No text)",
+        imageDataUrl: params.imageDataUrl ?? null,
+        diagramDataUrl: params.diagramDataUrl ?? null,
+      })
+      .where(eq(journalEntries.id, numId));
+    return { success: true };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return { success: false, error: message };
+  }
+}
+
 export async function deleteEntry(
   id: string
 ): Promise<{ success: true } | { success: false; error: string }> {
