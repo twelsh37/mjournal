@@ -375,10 +375,21 @@ export function JournalClient() {
     <>
       <div className="min-h-[calc(100vh-3.5rem)] w-full bg-background">
         <div className="mx-auto w-full max-w-4xl px-6 py-8">
-          <p className="font-sans text-[14pt] leading-relaxed text-foreground/90 max-w-2xl">
-            Welcome to my online journal—a place where I capture my day-to-day of life in tech. The highs, the lows, the breakthroughs, the dead ends, and everything in between. No polish, just notes and reflections as I remember them.
-            <span className="block mt-3">You never know I might actually update this.</span>
-          </p>
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+            <p className="font-sans text-[14pt] leading-relaxed text-foreground/90 max-w-2xl">
+              Welcome to my online journal—a place where I capture my day-to-day life in tech. The highs, the lows, the breakthroughs, the dead ends, and everything in between. No polish, just notes and reflections as I remember them.
+              <span className="block mt-3">You never know I might actually update this.</span>
+            </p>
+            <div
+              className="flex shrink-0 flex-col items-center justify-center gap-1 rounded-xl border border-border bg-card px-5 py-3 shadow-sm"
+              aria-label={`${entries.length} post${entries.length === 1 ? "" : "s"} in the journal`}
+            >
+              <span className="text-sm font-medium text-muted-foreground">Number of Entries</span>
+              <span className="font-heading text-2xl font-bold tabular-nums text-brand">
+                {entriesLoading ? "—" : entries.length}
+              </span>
+            </div>
+          </div>
           <hr className="my-8 border-border" aria-hidden="true" />
           {entriesLoading ? (
             <p className="text-muted-foreground">Loading entries…</p>
