@@ -35,6 +35,14 @@ function formatEntryDate(dateStr: string): string {
   });
 }
 
+/** Week key (Sunday–Saturday) for a YYYY-MM-DD date string; returns the Sunday of that week. */
+function getWeekKey(dateStr: string): string {
+  const d = new Date(dateStr + "T12:00:00");
+  const day = d.getDay();
+  d.setDate(d.getDate() - day);
+  return d.toISOString().slice(0, 10);
+}
+
 export function JournalClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -397,9 +405,20 @@ export function JournalClient() {
             <p className="text-destructive">{entriesError}</p>
           ) : sortedEntries.length > 0 ? (
             <ul className="space-y-6" aria-label="Journal entries">
-              {sortedEntries.map((entry) => (
-                <li key={entry.id}>
-                  <Card className="overflow-hidden border-border p-4">
+              {sortedEntries.flatMap((entry, i) => {
+                const weekKey = getWeekKey(entry.date);
+                const prevWeekKey = i > 0 ? getWeekKey(sortedEntries[i - 1].date) : null;
+                const showWeekHr = prevWeekKey !== null && weekKey !== prevWeekKey;
+                return [
+                  ...(showWeekHr
+                    ? [
+                        <li key={`week-${weekKey}`} className="list-none" aria-hidden="true">
+                          <hr className="my-8 border-2 border-brand" />
+                        </li>,
+                      ]
+                    : []),
+                  <li key={entry.id}>
+                    <Card className="overflow-hidden border-border p-4">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
                         <p className="mb-2 text-sm font-medium text-muted-foreground">
@@ -461,8 +480,9 @@ export function JournalClient() {
                       )}
                     </div>
                   </Card>
-                </li>
-              ))}
+                  </li>,
+                ];
+              })}
             </ul>
           ) : (
             <p className="text-muted-foreground">
