@@ -36,12 +36,21 @@ function rowToEntry(row: {
   };
 }
 
-export async function getEntries(): Promise<JournalEntryForUI[]> {
-  const rows = await db
-    .select()
-    .from(journalEntries)
-    .orderBy(desc(journalEntries.date), desc(journalEntries.createdAt));
-  return rows.map(rowToEntry);
+export async function getEntries(): Promise<
+  | { success: true; data: JournalEntryForUI[] }
+  | { success: false; error: string }
+> {
+  try {
+    const rows = await db
+      .select()
+      .from(journalEntries)
+      .orderBy(desc(journalEntries.date), desc(journalEntries.createdAt));
+    return { success: true, data: rows.map(rowToEntry) };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to load entries";
+    console.error("getEntries error:", err);
+    return { success: false, error: message };
+  }
 }
 
 export async function createEntry(params: {

@@ -94,8 +94,13 @@ export function JournalClient() {
     setEntriesLoading(true);
     setEntriesError(null);
     try {
-      const list = await getEntries();
-      setEntries(list);
+      const result = await getEntries();
+      if (result.success) {
+        setEntries(result.data);
+      } else {
+        setEntriesError(result.error);
+        setEntries([]);
+      }
     } catch (err) {
       setEntriesError(err instanceof Error ? err.message : "Failed to load entries");
     } finally {
@@ -402,7 +407,18 @@ export function JournalClient() {
           {entriesLoading ? (
             <p className="text-muted-foreground">Loading entries…</p>
           ) : entriesError ? (
-            <p className="text-destructive">{entriesError}</p>
+            <div className="rounded-xl border border-border bg-card p-4">
+              <p className="text-sm text-destructive">{entriesError}</p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-3"
+                onClick={() => refreshEntries()}
+              >
+                Try again
+              </Button>
+            </div>
           ) : sortedEntries.length > 0 ? (
             <ul className="space-y-6" aria-label="Journal entries">
               {sortedEntries.flatMap((entry, i) => {
