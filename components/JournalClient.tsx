@@ -510,41 +510,47 @@ export function JournalClient() {
 
       {isAdmin && (
       <Dialog open={modalOpen} onOpenChange={(open) => !open && closeModal()}>
-        <DialogContent className="sm:max-w-[32rem]" showCloseButton={true}>
-          <DialogHeader>
+        <DialogContent
+          className="flex h-[75vh] max-h-[75vh] max-w-[min(32rem,75vw)] flex-col overflow-hidden"
+          style={{ display: "flex", flexDirection: "column" }}
+          showCloseButton={true}
+        >
+          <DialogHeader className="shrink-0">
             <DialogTitle>New Entry</DialogTitle>
           </DialogHeader>
           {postError && (
-            <p className="text-sm text-destructive">{postError}</p>
+            <p className="shrink-0 text-sm text-destructive">{postError}</p>
           )}
-          <form onSubmit={handlePost} id="new-entry-form">
-            <div className="space-y-4 py-2">
-              <div className="space-y-2">
-                <label htmlFor="entry-heading" className="text-sm font-medium text-foreground">
-                  Heading
-                </label>
-                <input
-                  id="entry-heading"
-                  type="text"
-                  placeholder="Entry title"
-                  value={heading}
-                  onChange={(e) => setHeading(e.target.value)}
-                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="entry-body" className="text-sm font-medium text-foreground">
-                  Body
-                </label>
+          <form onSubmit={handlePost} id="new-entry-form" className="flex min-h-0 flex-1 flex-col gap-4 py-2">
+            <div className="shrink-0 space-y-2">
+              <label htmlFor="entry-heading" className="text-sm font-medium text-foreground">
+                Heading
+              </label>
+              <input
+                id="entry-heading"
+                type="text"
+                placeholder="Entry title"
+                value={heading}
+                onChange={(e) => setHeading(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+            <div className="flex min-h-0 flex-1 flex-col gap-2">
+              <label htmlFor="entry-body" className="shrink-0 text-sm font-medium text-foreground">
+                Body
+              </label>
+              <div className="min-h-0 flex-1">
                 <Textarea
                   id="entry-body"
                   placeholder="Write in **markdown**… headings, lists, code, links."
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  className="min-h-[160px] resize-y font-mono text-sm"
+                  className="h-full min-h-0 w-full resize-none overflow-y-auto font-mono text-sm"
                   rows={6}
                 />
               </div>
+            </div>
+            <div className="shrink-0 space-y-2">
               <div className="flex flex-wrap gap-4">
                 <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
                   <input
@@ -603,7 +609,7 @@ export function JournalClient() {
               )}
             </div>
           </form>
-          <DialogFooter showCloseButton={false}>
+          <DialogFooter className="shrink-0" showCloseButton={false}>
             <Button
               type="button"
               variant="outline"
@@ -624,63 +630,60 @@ export function JournalClient() {
         open={historicalModalOpen}
         onOpenChange={(open) => !open && closeHistoricalModal()}
       >
-        <DialogContent className="sm:max-w-[32rem]" showCloseButton={true}>
-          <DialogHeader>
+        <DialogContent
+          className="flex h-[75vh] max-h-[75vh] max-w-[min(32rem,75vw)] flex-col overflow-hidden"
+          style={{ display: "flex", flexDirection: "column" }}
+          showCloseButton={true}
+        >
+          <DialogHeader className="shrink-0">
             <DialogTitle>Historical Entry</DialogTitle>
           </DialogHeader>
           {postError && (
-            <p className="text-sm text-destructive">{postError}</p>
+            <p className="shrink-0 text-sm text-destructive">{postError}</p>
           )}
-          <form onSubmit={handleHistoricalPost} id="historical-entry-form">
-            <div className="space-y-4 py-2">
-              <div className="space-y-2">
-                <label
-                  htmlFor="hist-date"
-                  className="text-sm font-medium text-foreground"
-                >
-                  Date
-                </label>
-                <input
-                  id="hist-date"
-                  type="date"
-                  value={histDate}
-                  onChange={(e) => setHistDate(e.target.value)}
-                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  aria-label="Entry date"
-                />
-              </div>
-              <div className="space-y-2">
-                <label
-                  htmlFor="hist-heading"
-                  className="text-sm font-medium text-foreground"
-                >
-                  Heading
-                </label>
-                <input
-                  id="hist-heading"
-                  type="text"
-                  placeholder="Entry title"
-                  value={histHeading}
-                  onChange={(e) => setHistHeading(e.target.value)}
-                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
-              <div className="space-y-2">
-                <label
-                  htmlFor="hist-body"
-                  className="text-sm font-medium text-foreground"
-                >
-                  Body
-                </label>
+          <form onSubmit={handleHistoricalPost} id="historical-entry-form" className="flex min-h-0 flex-1 flex-col gap-4 py-2">
+            <div className="shrink-0 space-y-2">
+              <label htmlFor="hist-date" className="text-sm font-medium text-foreground">
+                Date
+              </label>
+              <input
+                id="hist-date"
+                type="date"
+                value={histDate}
+                onChange={(e) => setHistDate(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label="Entry date"
+              />
+            </div>
+            <div className="shrink-0 space-y-2">
+              <label htmlFor="hist-heading" className="text-sm font-medium text-foreground">
+                Heading
+              </label>
+              <input
+                id="hist-heading"
+                type="text"
+                placeholder="Entry title"
+                value={histHeading}
+                onChange={(e) => setHistHeading(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+            <div className="flex min-h-0 flex-1 flex-col gap-2">
+              <label htmlFor="hist-body" className="shrink-0 text-sm font-medium text-foreground">
+                Body
+              </label>
+              <div className="min-h-0 flex-1">
                 <Textarea
                   id="hist-body"
                   placeholder="Write in **markdown**… headings, lists, code, links."
                   value={histContent}
                   onChange={(e) => setHistContent(e.target.value)}
-                  className="min-h-[160px] resize-y font-mono text-sm"
+                  className="h-full min-h-0 w-full resize-none overflow-y-auto font-mono text-sm"
                   rows={6}
                 />
               </div>
+            </div>
+            <div className="shrink-0 space-y-2">
               <div className="flex flex-wrap gap-4">
                 <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
                   <input
@@ -739,7 +742,7 @@ export function JournalClient() {
               )}
             </div>
           </form>
-          <DialogFooter showCloseButton={false}>
+          <DialogFooter className="shrink-0" showCloseButton={false}>
             <Button
               type="button"
               variant="outline"
@@ -757,56 +760,56 @@ export function JournalClient() {
 
       {isAdmin && editingEntry && (
       <Dialog open={true} onOpenChange={(open) => !open && closeEditModal()}>
-        <DialogContent className="max-h-[75vh] max-w-[min(32rem,75vw)] overflow-hidden" style={{ display: "flex", flexDirection: "column" }} showCloseButton={true}>
-          <div className="flex min-h-0 flex-1 flex-col">
+        <DialogContent className="flex h-[75vh] max-h-[75vh] max-w-[min(32rem,75vw)] flex-col overflow-hidden" style={{ display: "flex", flexDirection: "column" }} showCloseButton={true}>
           <DialogHeader className="shrink-0">
             <DialogTitle>Edit entry</DialogTitle>
           </DialogHeader>
           {editError && (
             <p className="shrink-0 text-sm text-destructive">{editError}</p>
           )}
-          <div className="min-h-0 flex-1 overflow-y-auto">
-          <form onSubmit={handleEditSubmit} id="edit-entry-form">
-            <div className="space-y-4 py-2">
-              <div className="space-y-2">
-                <label htmlFor="edit-date" className="text-sm font-medium text-foreground">
-                  Date
-                </label>
-                <input
-                  id="edit-date"
-                  type="date"
-                  value={editDate}
-                  onChange={(e) => setEditDate(e.target.value)}
-                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  aria-label="Entry date"
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="edit-heading" className="text-sm font-medium text-foreground">
-                  Heading
-                </label>
-                <input
-                  id="edit-heading"
-                  type="text"
-                  placeholder="Entry title"
-                  value={editHeading}
-                  onChange={(e) => setEditHeading(e.target.value)}
-                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="edit-body" className="text-sm font-medium text-foreground">
-                  Body
-                </label>
+          <form onSubmit={handleEditSubmit} id="edit-entry-form" className="flex min-h-0 flex-1 flex-col gap-4 py-2">
+            <div className="shrink-0 space-y-2">
+              <label htmlFor="edit-date" className="text-sm font-medium text-foreground">
+                Date
+              </label>
+              <input
+                id="edit-date"
+                type="date"
+                value={editDate}
+                onChange={(e) => setEditDate(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label="Entry date"
+              />
+            </div>
+            <div className="shrink-0 space-y-2">
+              <label htmlFor="edit-heading" className="text-sm font-medium text-foreground">
+                Heading
+              </label>
+              <input
+                id="edit-heading"
+                type="text"
+                placeholder="Entry title"
+                value={editHeading}
+                onChange={(e) => setEditHeading(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+            <div className="flex min-h-0 flex-1 flex-col gap-2">
+              <label htmlFor="edit-body" className="shrink-0 text-sm font-medium text-foreground">
+                Body
+              </label>
+              <div className="min-h-0 flex-1">
                 <Textarea
                   id="edit-body"
                   placeholder="Write in **markdown**… headings, lists, code, links."
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
-                  className="min-h-[160px] resize-y font-mono text-sm"
+                  className="h-full min-h-0 w-full resize-none overflow-y-auto font-mono text-sm"
                   rows={6}
                 />
               </div>
+            </div>
+            <div className="shrink-0 space-y-2">
               <div className="flex flex-wrap gap-4">
                 <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
                   <input
@@ -865,7 +868,6 @@ export function JournalClient() {
               )}
             </div>
           </form>
-          </div>
           <DialogFooter className="shrink-0" showCloseButton={false}>
             <Button type="button" variant="outline" onClick={closeEditModal}>
               Cancel
@@ -874,7 +876,6 @@ export function JournalClient() {
               Save changes
             </Button>
           </DialogFooter>
-          </div>
         </DialogContent>
       </Dialog>
       )}
